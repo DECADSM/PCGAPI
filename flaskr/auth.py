@@ -76,5 +76,22 @@ def load_logged_in_user():
     else:
         g.user = get_db().execute(
             'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone
+        ).fetchone()
+    
+#Log out
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+    
+#require login
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        
+        return view(**kwargs)
+    return wrapped_view    
+    
     
