@@ -3,7 +3,7 @@ import functools
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
     )
-from werkzueg.sercurity import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.db import get_db
 
@@ -16,7 +16,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        dv = get_db()
+        db = get_db()
         error = None
         
         if not username:
@@ -34,19 +34,20 @@ def register():
             except db.IntegrityError:
                 error = f"User {username} is already registered."
             else:
-                return redirection(url_for("auth.login"))
+                return redirect(url_for("auth.login"))
                 
         flash(error)
     return render_template('auth/register.html')    
    
 #User Login
-@bp.route('/login', methods='GET', 'POST')
+@bp.route('/login', methods=('GET', 'POST'))
 
 def login():
+    user = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db.get_db()
+        db = get_db()
         error = None
         user = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
@@ -54,20 +55,20 @@ def login():
     
     if user is None:
         error = 'Incorrect username.'
-    elif not check_password_hash(user['password'], password)
+    elif not check_password_hash(user['password'], password):
         error = 'Incorrect password.'
         
     if error is None:
         session.clear()
         session['user_id'] = user['id']
-        return redirection(url_for('index'))
+        return redirect(url_for('index'))
         
     flash(error)
     
-return render_template('auth/login.html')
+    return render_template('auth/login.html')
 
 #Load logged in User
-@bp.before_app_reqest
+@bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
     
